@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
@@ -38,20 +39,34 @@ fn main() {
     let y_max = i64::max(y_sensor_max, y_beacon_max);
     println!("({}, {}) ({}, {})", x_min, y_min, x_max, y_max);
 
-    let mut visited = 0u64;
-    let mut count = 0i64;
-    for y in y_min..=y_max {
-        for x in x_min..=x_max {
-            visited += 1;
-            for [x_sensor, y_sensor, _x_beacon, _y_beacon, dist_sensor_beacon] in &vectors {
-                let dist_sensor_point = i64::abs(x_sensor - x) + i64::abs(y_sensor - y);
-
-                if &dist_sensor_point <= dist_sensor_beacon {
+    let mut covered_points = BTreeSet::new();
+    let mut visited = 0i64;
+    let mut count = 0u64;
+    for [_x_sensor, _y_sensor, x_beacon, y_beacon, dist_sensor_beacon] in &vectors {
+        for x in (x_beacon - dist_sensor_beacon)..(x_beacon + dist_sensor_beacon) {
+            for y in (y_beacon - dist_sensor_beacon)..(y_beacon + dist_sensor_beacon) {
+                visited += 1;
+                if covered_points.insert([x, y]) {
                     count += 1;
-                    break;
                 }
             }
         }
+        println!("[D001] {}/{}", count, visited);
     }
+    //    let mut visited = 0u64;
+    //    let mut count = 0i64;
+    //    for y in y_min..=y_max {
+    //        for x in x_min..=x_max {
+    //            visited += 1;
+    //            for [x_sensor, y_sensor, _x_beacon, _y_beacon, dist_sensor_beacon] in &vectors {
+    //                let dist_sensor_point = i64::abs(x_sensor - x) + i64::abs(y_sensor - y);
+    //
+    //                if &dist_sensor_point <= dist_sensor_beacon {
+    //                    count += 1;
+    //                    break;
+    //                }
+    //            }
+    //        }
+    //    }
     println!("{}/{}", count, visited);
 }

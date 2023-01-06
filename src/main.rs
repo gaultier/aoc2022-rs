@@ -15,10 +15,14 @@ fn parse_line(s: &str) -> [i64; 4] {
 }
 
 fn main() {
-    let file = File::open("15_sample.txt").unwrap();
+    let file = File::open("15.txt").unwrap();
+    let mut nums = Vec::new();
     for line in BufReader::new(file).lines() {
         let line = line.unwrap();
-        let nums = parse_line(&line);
-        println!("{:?}", nums);
+
+        let coords = parse_line(&line);
+        println!("{:?}", coords);
+
+        nums.push(coords);
     }
 }

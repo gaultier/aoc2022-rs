@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use bit_vec::BitVec;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
@@ -37,33 +37,26 @@ fn main() {
     //const Y: i64 = 10;
     const Y: i64 = 2000000;
 
-    let mut beacon_xs = HashSet::new();
-    let mut in_sensor_range_xs = HashSet::new();
+    let width = i64::abs(x_max - x_min) as usize;
+    let mut beacon_xs = BitVec::from_elem(width, false);
+    let mut in_sensor_range_xs = BitVec::from_elem(width, false);
 
     for x in x_min..=x_max {
         for [x_sensor, y_sensor, x_beacon, y_beacon, dist_sensor_beacon] in &vectors {
             if x == *x_beacon && Y == *y_beacon {
-                beacon_xs.insert(x);
-                continue;
+                beacon_xs.set(i64::abs(x - x_min) as usize, true);
+                break;
             }
 
             let dist_sensor_point = i64::abs(x_sensor - x) + i64::abs(y_sensor - Y);
 
             if dist_sensor_point <= *dist_sensor_beacon {
-                in_sensor_range_xs.insert(x);
-                // println!("[D003] {} {}", x, count);
+                in_sensor_range_xs.set(i64::abs(x - x_min) as usize, true);
                 break;
             }
         }
     }
-    let mut count = 0usize;
-    for x in x_min..=x_max {
-        if beacon_xs.get(&x).is_some() {
-            continue;
-        }
-        if in_sensor_range_xs.get(&x).is_some() {
-            count += 1;
-        }
-    }
-    println!("{}", count);
+    in_sensor_range_xs.difference(&beacon_xs);
+
+    println!("{}", in_sensor_range_xs.iter().filter(|x| *x).count());
 }

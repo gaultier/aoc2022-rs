@@ -17,15 +17,15 @@ fn parse_line(s: &str) -> [i64; 5] {
 }
 
 fn main() {
-    // let file = File::open("15_sample.txt").unwrap();
-    let file = File::open("15.txt").unwrap();
+    let file = File::open("15_sample.txt").unwrap();
+    // let file = File::open("15.txt").unwrap();
     let vectors = BufReader::new(file)
         .lines()
         .map(|l| parse_line(&l.unwrap()))
         .collect::<Vec<_>>();
 
-    // const MAX: i64 = 20;
-    const MAX: i64 = 4000000;
+    const MAX: i64 = 20;
+    // const MAX: i64 = 4000000;
 
     let x_min = vectors
         .iter()
@@ -48,19 +48,24 @@ fn main() {
         .max()
         .unwrap();
 
-    let width = i64::abs(x_max - x_min) as usize;
-    let height = i64::abs(y_max - y_min) as usize;
+    let real_xmin = if x_min < 0 { 0i64 } else { x_min };
+    let real_xmax = if x_max > MAX { MAX } else { x_max };
+    let real_ymin = if y_min < 0 { 0i64 } else { y_min };
+    let real_ymax = if y_max > MAX { MAX } else { y_max };
+
+    let width = i64::abs(real_xmax - real_xmin) as usize;
+    let height = i64::abs(real_ymax - real_ymin) as usize;
     let mut covered = BitVec::from_elem((width + 1) * (height + 1), false);
 
-    for y in y_min..=y_max {
-        for x in x_min..=x_max {
-            let dx = (x - x_min) as usize;
-            let dy = (y - y_min) as usize;
+    for y in real_ymin..=real_ymax {
+        for x in real_xmin..=real_xmax {
+            let dx = (x - real_xmin) as usize;
+            let dy = (y - real_ymin) as usize;
             let pos = dy * width + dx;
             // println!(
-            //     "[D001] x_min={} x_max={} y_min={} y_max={} pos={} x={} y={} dx={} dy={}",
-            //     x_min, x_max, y_min, y_max, pos, x, y, dx, dy
-            // );
+            //      "[D001] real_xmin={} real_xmax={} real_ymin={} real_ymax={} pos={} x={} y={} dx={} dy={}",
+            //      real_xmin, real_xmax, real_ymin, real_ymax, pos, x, y, dx, dy
+            //  );
             if covered.get(pos).unwrap() {
                 continue;
             }
@@ -79,10 +84,10 @@ fn main() {
         }
     }
     // println!("{:?}", covered);
-    for y in y_min..=y_max {
-        for x in x_min..=x_max {
-            let dx = (x - x_min) as usize;
-            let dy = (y - y_min) as usize;
+    for y in real_ymin..=real_ymax {
+        for x in real_xmin..=real_xmax {
+            let dx = (x - real_xmin) as usize;
+            let dy = (y - real_ymin) as usize;
             let pos = dy * width + dx;
 
             if x < 0 || x > MAX || y < 0 || y > MAX {

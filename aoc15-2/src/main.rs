@@ -17,60 +17,84 @@ fn parse_line(s: &str) -> [i64; 5] {
 }
 
 fn main() {
-    let file = File::open("15_sample.txt").unwrap();
-    // let file = File::open("15.txt").unwrap();
+    // let file = File::open("15_sample.txt").unwrap();
+    let file = File::open("15.txt").unwrap();
     let vectors = BufReader::new(file)
         .lines()
         .map(|l| parse_line(&l.unwrap()))
         .collect::<Vec<_>>();
 
-    let x_min = {
-        let x_min = vectors
-            .iter()
-            .map(|coord| coord[0] - coord[4])
-            .min()
-            .unwrap();
+    // const MAX: i64 = 20;
+    const MAX: i64 = 4000000;
 
-        if x_min <= 0 {
-            0
-        } else {
-            x_min
-        }
-    };
-    let x_max = {
-        let x_max = vectors
-            .iter()
-            .map(|coord| coord[0] + coord[4])
-            .max()
-            .unwrap();
-        if x_max >= 4000000 {
-            4000000
-        } else {
-            x_max
-        }
-    };
+    let x_min = vectors
+        .iter()
+        .map(|coord| coord[0] - coord[4])
+        .min()
+        .unwrap();
+    let x_max = vectors
+        .iter()
+        .map(|coord| coord[0] + coord[4])
+        .max()
+        .unwrap();
+    let y_min = vectors
+        .iter()
+        .map(|coord| coord[1] - coord[4])
+        .min()
+        .unwrap();
+    let y_max = vectors
+        .iter()
+        .map(|coord| coord[1] + coord[4])
+        .max()
+        .unwrap();
 
-    const Y: i64 = 2000000;
     let width = i64::abs(x_max - x_min) as usize;
-    let mut beacon_xs = BitVec::from_elem(width, false);
-    let mut in_sensor_range_xs = BitVec::from_elem(width, false);
+    let height = i64::abs(y_max - y_min) as usize;
+    let mut covered = BitVec::from_elem((width + 1) * (height + 1), false);
 
-    for x in x_min..=x_max {
-        for [x_sensor, y_sensor, x_beacon, y_beacon, dist_sensor_beacon] in &vectors {
-            if x == *x_beacon && Y == *y_beacon {
-                beacon_xs.set(i64::abs(x - x_min) as usize, true);
-                break;
+    for y in y_min..=y_max {
+        for x in x_min..=x_max {
+            let dx = (x - x_min) as usize;
+            let dy = (y - y_min) as usize;
+            let pos = dy * width + dx;
+            // println!(
+            //     "[D001] x_min={} x_max={} y_min={} y_max={} pos={} x={} y={} dx={} dy={}",
+            //     x_min, x_max, y_min, y_max, pos, x, y, dx, dy
+            // );
+            if covered.get(pos).unwrap() {
+                continue;
             }
+            for [x_sensor, y_sensor, x_beacon, y_beacon, dist_sensor_beacon] in &vectors {
+                if x == *x_beacon && y == *y_beacon {
+                    covered.set(pos, true);
+                    break;
+                }
 
-            let dist_sensor_point = i64::abs(x_sensor - x) + i64::abs(y_sensor - Y);
-
-            if dist_sensor_point <= *dist_sensor_beacon {
-                in_sensor_range_xs.set(i64::abs(x - x_min) as usize, true);
-                break;
+                let dist_sensor_point = i64::abs(x_sensor - x) + i64::abs(y_sensor - y);
+                if dist_sensor_point <= *dist_sensor_beacon {
+                    covered.set(pos, true);
+                    break;
+                }
             }
         }
     }
-    in_sensor_range_xs.difference(&beacon_xs);
+    // println!("{:?}", covered);
+    for y in y_min..=y_max {
+        for x in x_min..=x_max {
+            let dx = (x - x_min) as usize;
+            let dy = (y - y_min) as usize;
+            let pos = dy * width + dx;
 
-    println!("{}", in_sensor_range_xs.iter().filter(|x| *x).count());
+            if x < 0 || x > MAX || y < 0 || y > MAX {
+                continue;
+            }
+            if covered.get(pos).unwrap() {
+                continue;
+            }
+
+            println!("x={} y={}", x, y);
+        }
+    }
+
+    // println!("{}", in_sensor_range_xs.iter().filter(|x| *x).count());
 }

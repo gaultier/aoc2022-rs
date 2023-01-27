@@ -28,7 +28,6 @@ fn main() {
         .map(|l| parse_line(&l.unwrap()))
         .collect::<Vec<_>>();
 
-
     let x_min = vectors
         .iter()
         .map(|coord| coord[0] - coord[4])
@@ -62,14 +61,14 @@ fn main() {
     for [x_sensor, y_sensor, _x_beacon, _y_beacon, dist_sensor_beacon] in &vectors {
         let x_min_search = x_sensor - dist_sensor_beacon;
         let x_max_search = x_sensor + dist_sensor_beacon;
-        // if x_min_search > real_xmax || x_max_search < real_xmin {
-        //     continue;
-        // }
+        if x_min_search > real_xmax || x_max_search < real_xmin {
+            continue;
+        }
         let y_min_search = y_sensor - dist_sensor_beacon;
         let y_max_search = y_sensor + dist_sensor_beacon;
-        // if y_min_search > real_ymax || y_max_search < real_ymin {
-        //     continue;
-        // }
+        if y_min_search > real_ymax || y_max_search < real_ymin {
+            continue;
+        }
 
         let x_min = if x_min_search < real_xmin {
             real_xmin
@@ -110,20 +109,6 @@ fn main() {
             }
         }
     }
-    // println!("{:?}", covered);
-    'outer: for y in real_ymin..=real_ymax {
-        for x in real_xmin..=real_xmax {
-            let dx = (x - real_xmin) as usize;
-            let dy = (y - real_ymin) as usize;
-            let pos = dy * width + dx;
-            if covered.get(pos).unwrap() {
-                continue;
-            }
-
-            println!("x={} y={}", x, y);
-            break 'outer;
-        }
-    }
-
-    // println!("{}", in_sensor_range_xs.iter().filter(|x| *x).count());
+    let pos =  covered.iter().position(|x| !x).unwrap(); 
+            println!("{} {} {}", pos, pos % width, pos / width);
 }
